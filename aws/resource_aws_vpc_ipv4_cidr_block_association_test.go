@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAwsVpcIpv4CidrBlockAssociation_basic(t *testing.T) {
-	var associationSecondary, associationTertiary ec2.VpcCidrBlockAssociation
+	var associationSecondary, associationTertiary, associationSharedAddressSpace ec2.VpcCidrBlockAssociation
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,6 +26,8 @@ func TestAccAwsVpcIpv4CidrBlockAssociation_basic(t *testing.T) {
 					testAccCheckAdditionalAwsVpcIpv4CidrBlock(&associationSecondary, "172.2.0.0/16"),
 					testAccCheckAwsVpcIpv4CidrBlockAssociationExists("aws_vpc_ipv4_cidr_block_association.tertiary_cidr", &associationTertiary),
 					testAccCheckAdditionalAwsVpcIpv4CidrBlock(&associationTertiary, "170.2.0.0/16"),
+					testAccCheckAwsVpcIpv4CidrBlockAssociationExists("aws_vpc_ipv4_cidr_block_association.shared_address_space_cidr", &associationSharedAddressSpace),
+					testAccCheckAdditionalAwsVpcIpv4CidrBlock(&associationSharedAddressSpace, "100.64.0.0/10"),
 				),
 			},
 			{
@@ -35,6 +37,11 @@ func TestAccAwsVpcIpv4CidrBlockAssociation_basic(t *testing.T) {
 			},
 			{
 				ResourceName:      "aws_vpc_ipv4_cidr_block_association.tertiary_cidr",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "aws_vpc_ipv4_cidr_block_association.shared_address_space_cidr",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -147,5 +154,10 @@ resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
 resource "aws_vpc_ipv4_cidr_block_association" "tertiary_cidr" {
   vpc_id = "${aws_vpc.foo.id}"
   cidr_block = "170.2.0.0/16"
+}
+
+resource "aws_vpc_ipv4_cidr_block_association" "shared_address_space_cidr" {
+  vpc_id = "${aws_vpc.foo.id}"
+  cidr_block = "100.64.0.0/10"
 }
 `
